@@ -1,10 +1,12 @@
-use std::net::TcpListner;
+mod parser;
+
+use std::net::TcpListener;
 use std::thread;
 use std::io::{Read, Write};
 use std::io;
 
 fn server_start() -> io::Result<()> {
-    let lis = TcpListner::bind("127.0.0.1:8080")?;
+    let lis = TcpListener::bind("127.0.0.1:8080")?;
 
     for stream in lis.incoming() {
         let mut stream = match stream {
