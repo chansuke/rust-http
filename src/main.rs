@@ -19,15 +19,27 @@ fn server_start() -> io::Result<()> {
 
         let _ = thread::spawn(
             move || -> io::Result<()> {
+                use parser::ParseResult::*;
+                let mut buf = Vec::new();
                 loop {
                     let mut b = [0; 1024];
                     let n = stream.read(&mut b)?;
                     if n == 0 {
                         return Ok(());
-                    } else {
-                        stream.write(&b[0..n])?;
                     }
-                }});
+                    buf.extend_from_slice(&b[0..n]);
+                    match parser::parse(buf.as_slice()) {
+                        Partial => continue,
+                        Error => {
+                            return Ok(());
+                        },
+                        Complete(req) => {
+                            write!(stream, "OK {}\r\n", req.0)?;
+                            return Ok(());
+                        },
+                    };
+                }
+            });
     }
     Ok(())
 }
